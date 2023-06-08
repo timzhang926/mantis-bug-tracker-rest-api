@@ -1,0 +1,5728 @@
+openapi: 3.0.0
+info:
+  title: Mantis Bug Tracker REST API
+  description: >-
+    Mantis Bug Tracker (MantisHub) REST APIs.
+
+
+    REST API calls have to be authenticated by creating an API token for the
+    user doing the calls, and then passing the API token in the 'Authorization'
+    header.  However, for anonymous access, the API key and header are not
+    needed.  
+
+
+    Postman Environment Variables:
+
+    - token - The API token to be used for authentication.
+
+    - url - The base URL for Mantis instance (e.g. 'https://mantisbt' or
+    'https://instance-name.mantishub.io').
+
+
+    There has been significant improvements and feature additions for REST API
+    in each of the recent releases.  Hence, it is highly recommended to use
+    latest release when leveraging the REST APIs.
+
+
+    REST API is enabled by default since MantisBT 2.8.0 release.
+  version: 1.0.0
+servers:
+  - url: http://{{url}}
+components:
+  securitySchemes:
+    apikeyAuth:
+      type: http
+      scheme: apikey
+security:
+  - apikeyAuth: []
+tags:
+  - name: Issues
+    description: A set of REST API for handling issues.
+  - name: Issue Notes and Attachments
+  - name: Projects
+    description: A set of REST APIs for handling projects.
+  - name: Projects > Project Users
+  - name: Projects > Project Versions
+  - name: Projects > Sub-Projects
+  - name: Filters
+    description: A set of REST APIs for handling filters.
+  - name: Users
+    description: A set of REST APIs for handling users.
+  - name: User Tokens
+  - name: Config
+    description: A set of REST APIs for handling configurations.
+  - name: Lang
+    description: A set of APIs for handling localized strings.
+  - name: Pages
+  - name: Impersonation
+paths:
+  /api/rest/issues/{issue_id}:
+    get:
+      tags:
+        - Issues
+      summary: Get an issue (specific fields)
+      description: |-
+        Get selected fields for issue with the specified id.
+
+        Ability to select fields is available since MantisBT 2.26.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: select
+          in: query
+          schema:
+            type: string
+          example: id,summary,description
+        - name: issue_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The issue id
+          example: '{{issueId}}'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 07:58:22 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            ETag:
+              schema:
+                type: string
+                example: >-
+                  3357de6c60e12e03b31ce1cd6877537137874c0a2243ef4accdc7fb5a4f56d5d
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '98'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                issues:
+                  - id: 20
+                    summary: This is a test issue
+                    description: This is a test description
+        '404':
+          description: 'Issue #2192022 not found'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '89'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sun, 07 Jan 2018 22:53:57 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: 'Issue #1234 not found'
+                code: 1100
+                localized: Issue 1234 not found.
+    patch:
+      tags:
+        - Issues
+      summary: Update an issue
+      description: |-
+        Update an exiting issue.
+
+        Available since MantisBT 2.8.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"summary\": \"This is a test rest issue\",\n 
+                \"priority\": {\n    \"name\": \"high\"\n  },\n  \"handler\":
+                {\n  \t\"name\": \"vboctor\"\n  },\n  \"status\": {\n 
+                \t\"name\": \"assigned\"\n  },\n  \"custom_fields\":\n  [\n   
+                {\n      \"field\": {\n        \"name\": \"Email\"\n     
+                },\n      \"value\": \"vboctor@example.com\"\n    }\n  ],\n 
+                \"notes\": [\n    {\n      \"id\": 54527,\n      \"reporter\":
+                {\n        \"name\": \"vboctor\"\n      },\n      \"text\":
+                \"This is a note from issue update.\",\n      \"view_state\":
+                {\n        \"id\": 10,\n        \"name\": \"public\",\n       
+                \"label\": \"public\"\n      },\n      \"type\": \"note\"\n   
+                },\n    {\n      \"reporter\": {\n        \"name\":
+                \"vboctor\"\n      },\n      \"text\": \"another note
+                1.\",\n      \"view_state\": {\n        \"name\":
+                \"public\"\n      },\n      \"type\": \"note\"\n    },\n   
+                {\n      \"reporter\": {\n        \"name\": \"vboctor\"\n     
+                },\n      \"text\": \"Another note 2\",\n      \"view_state\":
+                {\n        \"name\": \"public\"\n      },\n      \"type\":
+                \"note\"\n    }\n  ]\n}"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: issue_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The issue id
+          example: '{{issueId}}'
+      responses:
+        '403':
+          description: >-
+            Access denied for user GermanReporter. Reason: Not enough rights to
+            update issues.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '96'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Mon, 08 Jan 2018 00:04:43 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: >-
+                  Access denied for user vboctor. Reason: Not enough rights to
+                  update issues.
+        '404':
+          description: 'Issue #1234 not found'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '89'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sun, 07 Jan 2018 23:35:27 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: 'Issue #1234 not found'
+                code: 1100
+                localized: Issue 1234 not found.
+    delete:
+      tags:
+        - Issues
+      summary: Delete an issue
+      description: |-
+        Deletes an issue given its id.
+
+        Available since MantisBT 2.3.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: issue_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The issue id
+          example: '{{issueId}}'
+      responses:
+        '204':
+          description: No Content
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Encoding:
+              schema:
+                type: string
+                example: gzip
+            Content-Type:
+              schema:
+                type: string
+                example: ''
+            Date:
+              schema:
+                type: string
+                example: Sun, 07 Jan 2018 23:32:58 GMT
+            ETag:
+              schema:
+                type: string
+                example: >-
+                  5584552d93eb0f34ceecc1a65cca77d6c90a90df3f7f215b917606ccc06c2876
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            Vary:
+              schema:
+                type: string
+                example: Accept-Encoding
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: vboctoradmin
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.11.0-dev
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: ''
+        '404':
+          description: 'Issue #1234 not found'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '89'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sun, 07 Jan 2018 23:35:27 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: 'Issue #1234 not found'
+                code: 1100
+                localized: Issue 1234 not found.
+  /api/rest/issues/{issue_id}/files:
+    get:
+      tags:
+        - Issues
+      summary: Get issue files
+      description: |-
+        Get all files associated with an issue.
+
+        Available since MantisBT 2.11.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: issue_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The issue id to get files for
+          example: '{{issueId}}'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '1509'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sun, 07 Jan 2018 22:43:16 GMT
+            ETag:
+              schema:
+                type: string
+                example: >-
+                  1625146a518db1112fdce101781fae3f6b5b936ec3b02ab77a78705489cfee67
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: vboctoradmin
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.11.0-dev
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                issues:
+                  - id: 1234
+                    summary: Sample issue title
+                    description: Sample issue description
+                    project:
+                      id: 1
+                      name: mantisbt
+                    category:
+                      id: 135
+                      name: General
+                    reporter:
+                      id: 1
+                      name: vboctor
+                      real_name: Victor Boctor
+                      email: vboctor@example.com
+                    status:
+                      id: 10
+                      name: new
+                      label: new
+                      color: '#fcbdbd'
+                    resolution:
+                      id: 10
+                      name: open
+                      label: open
+                    view_state:
+                      id: 10
+                      name: public
+                      label: public
+                    priority:
+                      id: 30
+                      name: normal
+                      label: normal
+                    severity:
+                      id: 50
+                      name: minor
+                      label: minor
+                    reproducibility:
+                      id: 70
+                      name: have not tried
+                      label: have not tried
+                    sticky: false
+                    created_at: '2017-04-23T13:12:28-04:00'
+                    updated_at: '2017-04-23T13:12:28-04:00'
+                    custom_fields:
+                      - field:
+                          id: 4
+                          name: The City
+                        value: Seattle
+                    history:
+                      - created_at: '2017-04-23T13:12:28-04:00'
+                        user:
+                          id: 36771
+                          name: vboctor
+                          real_name: Victor Boctor
+                          email: vboctor@example.com
+                        type:
+                          id: 1
+                          name: issue-new
+                        message: New Issue
+        '404':
+          description: 'Issue #2192022 not found'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '89'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sun, 07 Jan 2018 22:53:57 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: 'Issue #1234 not found'
+                code: 1100
+                localized: Issue 1234 not found.
+    post:
+      tags:
+        - Issue Notes and Attachments
+      summary: Add attachments to issue
+      description: |-
+        Add attachments to an existing issue.
+
+        Available since MantisBT 2.11.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"files\": [\n  \t{\n  \t\t\"name\": \"test.txt\",\n 
+                \t\t\"content\":
+                \"VGhpcyBpcyBhIFRFU1QuDQpUaGlzIGlzIGEgVEVTVC4NClRoaXMgaXMgYSBURVNULg0KVGhpcyBpcyBhIFRFU1QuDQpUaGlzIGlzIGEgVEVTVC4=\"\n 
+                \t}  \t\n  ]\n}"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: issue_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The issue id
+          example: '{{issueId}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/rest/issues/{issue_id}/files/{file_id}:
+    get:
+      tags:
+        - Issues
+      summary: Get issue file (single)
+      description: |-
+        Get a single file from an issue.
+
+        Available since MantisBT 2.11.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: issue_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The issue id
+          example: '{{issueId}}'
+        - name: file_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The attachment file id
+          example: '{{issueFileId}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/rest/issues:
+    get:
+      tags:
+        - Issues
+      summary: Get unassigned issues
+      description: |-
+        This is a standard filter that gets unassigned issues.
+
+        Available since MantisBT 2.10.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: filter_id
+          in: query
+          schema:
+            type: string
+          description: The filter id
+          example: unassigned
+        - name: page_size
+          in: query
+          schema:
+            type: string
+          description: The page size
+          example: '{{pageSize}}'
+        - name: page
+          in: query
+          schema:
+            type: integer
+          description: The page number
+          example: '1'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 19:51:16 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            Set-Cookie:
+              schema:
+                type: string
+                example: >-
+                  MANTIS_PROJECT_COOKIE=0; expires=Mon, 21-Aug-2023 19:51:16
+                  GMT; Max-Age=31536000; path=/; secure; HttpOnly;
+                  SameSite=Strict
+            ETag:
+              schema:
+                type: string
+                example: >-
+                  36e6f6971f98e7b7bf3accc66ca42476225fc1bd8ab4eddd16bbe2db9d1b5676
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '913'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                issues:
+                  - id: 1
+                    summary: This is a test issue
+                    description: "This is a test issue\r\nThis is a test issue\r\nThis is a test issue"
+                    project:
+                      id: 1
+                      name: Test Project
+                    category:
+                      id: 1
+                      name: General
+                    reporter:
+                      id: 1
+                      name: administrator
+                      email: root@localhost
+                    status:
+                      id: 10
+                      name: new
+                      label: new
+                      color: '#fcbdbd'
+                    resolution:
+                      id: 10
+                      name: open
+                      label: open
+                    view_state:
+                      id: 10
+                      name: public
+                      label: public
+                    priority:
+                      id: 30
+                      name: normal
+                      label: normal
+                    severity:
+                      id: 50
+                      name: minor
+                      label: minor
+                    reproducibility:
+                      id: 70
+                      name: have not tried
+                      label: have not tried
+                    sticky: false
+                    created_at: '2022-08-20T16:12:56-07:00'
+                    updated_at: '2022-08-20T16:12:56-07:00'
+                    history:
+                      - created_at: '2022-08-20T16:12:56-07:00'
+                        user:
+                          id: 1
+                          name: administrator
+                          email: root@localhost
+                        type:
+                          id: 1
+                          name: issue-new
+                        message: New Issue
+    post:
+      tags:
+        - Issues
+      summary: Create an issue with attachments
+      description: |-
+        Create an issue with attachments
+
+        Available since MantisBT 2.12.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n    \"summary\": \"Sample REST issue with attachment\",\n   
+                \"description\": \"Description for sample REST issue.\",\n   
+                \"project\": {\n        \"id\": 1,\n        \"name\":
+                \"mantisbt\"\n    },\n    \"category\": {\n        \"id\":
+                5,\n        \"name\": \"bugtracker\"\n    },\n   
+                \"custom_fields\": [\n        {\n            \"field\":
+                {\n                \"id\": 4,\n                \"name\": \"The
+                City\"\n            },\n            \"value\":
+                \"Seattle\"\n        }\n    ],\n    \"files\": [\n       
+                {\n            \"name\": \"test.txt\",\n            \"content\":
+                \"VGhpcyBpcyBhIFRFU1QuDQpUaGlzIGlzIGEgVEVTVC4NClRoaXMgaXMgYSBURVNULg0KVGhpcyBpcyBhIFRFU1QuDQpUaGlzIGlzIGEgVEVTVC4=\"\n       
+                },\n        {\n            \"name\": \"test2.txt\",\n           
+                \"content\":
+                \"VGhpcyBpcyBhIFRFU1QuDQpUaGlzIGlzIGEgVEVTVC4NClRoaXMgaXMgYSBURVNULg0KVGhpcyBpcyBhIFRFU1QuDQpUaGlzIGlzIGEgVEVTVC4=\"\n       
+                }\n    ]\n}\n"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '201':
+          description: Issue Created with id 22131
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '2401'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sun, 07 Jan 2018 23:47:34 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: EvilMan
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.11.0-dev
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                issue:
+                  id: 1
+                  summary: Sample REST issue
+                  description: Description for sample REST issue.
+                  additional_information: More info about the issue
+                  project:
+                    id: 1
+                    name: mantisbt
+                  category:
+                    id: 5
+                    name: bugtracker
+                  reporter:
+                    id: 2
+                    name: GermanReporter
+                  handler:
+                    id: 1
+                    name: vboctor
+                  status:
+                    id: 50
+                    name: assigned
+                    label: zugewiesen
+                    color: '#c2dfff'
+                  resolution:
+                    id: 10
+                    name: open
+                    label: offen
+                  view_state:
+                    id: 10
+                    name: public
+                    label: öffentlich
+                  priority:
+                    id: 30
+                    name: normal
+                    label: normal
+                  severity:
+                    id: 20
+                    name: trivial
+                    label: Trivial
+                  reproducibility:
+                    id: 10
+                    name: always
+                    label: immer
+                  sticky: false
+                  created_at: '2018-01-07T18:47:35-05:00'
+                  updated_at: '2018-01-07T18:47:35-05:00'
+                  custom_fields:
+                    - field:
+                        id: 4
+                        name: The City
+                      value: Seattle
+                  tags:
+                    - id: '1'
+                      name: mantishub
+                  history:
+                    - created_at: '2018-01-07T18:47:35-05:00'
+                      user:
+                        id: 2
+                        name: GermanReporter
+                        email: german-reporter@example.com
+                      type:
+                        id: 1
+                        name: issue-new
+                      message: Neuer Eintrag
+                    - created_at: '2018-01-07T18:47:35-05:00'
+                      user:
+                        id: 2
+                        name: GermanReporter
+                        email: german-reporter@example.com
+                      field:
+                        name: status
+                        label: Status
+                      type:
+                        id: 0
+                        name: field-updated
+                      old_value:
+                        id: 10
+                        name: new
+                        label: neu
+                        color: '#fcbdbd'
+                      new_value:
+                        id: 50
+                        name: assigned
+                        label: zugewiesen
+                        color: '#c2dfff'
+                      message: Status
+                      change: neu => zugewiesen
+                    - created_at: '2018-01-07T18:47:35-05:00'
+                      user:
+                        id: 2
+                        name: GermanReporter
+                        email: german-reporter@example.com
+                      field:
+                        name: handler
+                        label: Bearbeitung durch
+                      type:
+                        id: 0
+                        name: field-updated
+                      old_value:
+                        id: 0
+                      new_value:
+                        id: 1
+                        name: vboctor
+                      message: Bearbeitung durch
+                      change: ' => vboctor'
+                    - created_at: '2018-01-07T18:47:35-05:00'
+                      user:
+                        id: 2
+                        name: GermanReporter
+                        email: german-reporter@example.com
+                      type:
+                        id: 25
+                        name: tag-added
+                      tag:
+                        id: '1'
+                        name: mantishub
+                      message: 'Tag zugeordnet: mantishub'
+        '403':
+          description: User does not have access right to report issues
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 19:31:48 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            Content-Length:
+              schema:
+                type: integer
+                example: '101'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: User does not have access right to report issues
+                code: 13
+                localized: Access Denied.
+        '404':
+          description: Project '5' not found
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 19:33:00 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            Content-Length:
+              schema:
+                type: integer
+                example: '85'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: Project '5' not found
+                code: 700
+                localized: Project "5" not found.
+  /api/rest/issues/:
+    post:
+      tags:
+        - Issues
+      summary: Create an issue (minimal) Copy
+      description: |-
+        Shows the creation of issue with minimal information.
+
+        Available since MantisBT 2.3.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"summary\": \"This is a test issue\",\n  \"description\":
+                \"This is a test description\",\n  \"category\": {\n   
+                \"name\": \"General\"\n  },\n  \"project\": {\n    \"name\":
+                \"New Project 2\"\n  },\n  \"tags\": [\n      {\n         
+                \"name\": \"mantishub\"\n      }\n  ]\n}"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '201':
+          description: Issue Created with id 22131
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '2401'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sun, 07 Jan 2018 23:47:34 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: EvilMan
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.11.0-dev
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                issue:
+                  id: 1
+                  summary: Sample REST issue
+                  description: Description for sample REST issue.
+                  additional_information: More info about the issue
+                  project:
+                    id: 1
+                    name: mantisbt
+                  category:
+                    id: 5
+                    name: bugtracker
+                  reporter:
+                    id: 2
+                    name: GermanReporter
+                  handler:
+                    id: 1
+                    name: vboctor
+                  status:
+                    id: 50
+                    name: assigned
+                    label: zugewiesen
+                    color: '#c2dfff'
+                  resolution:
+                    id: 10
+                    name: open
+                    label: offen
+                  view_state:
+                    id: 10
+                    name: public
+                    label: öffentlich
+                  priority:
+                    id: 30
+                    name: normal
+                    label: normal
+                  severity:
+                    id: 20
+                    name: trivial
+                    label: Trivial
+                  reproducibility:
+                    id: 10
+                    name: always
+                    label: immer
+                  sticky: false
+                  created_at: '2018-01-07T18:47:35-05:00'
+                  updated_at: '2018-01-07T18:47:35-05:00'
+                  custom_fields:
+                    - field:
+                        id: 4
+                        name: The City
+                      value: Seattle
+                  tags:
+                    - id: '1'
+                      name: mantishub
+                  history:
+                    - created_at: '2018-01-07T18:47:35-05:00'
+                      user:
+                        id: 2
+                        name: GermanReporter
+                        email: german-reporter@example.com
+                      type:
+                        id: 1
+                        name: issue-new
+                      message: Neuer Eintrag
+                    - created_at: '2018-01-07T18:47:35-05:00'
+                      user:
+                        id: 2
+                        name: GermanReporter
+                        email: german-reporter@example.com
+                      field:
+                        name: status
+                        label: Status
+                      type:
+                        id: 0
+                        name: field-updated
+                      old_value:
+                        id: 10
+                        name: new
+                        label: neu
+                        color: '#fcbdbd'
+                      new_value:
+                        id: 50
+                        name: assigned
+                        label: zugewiesen
+                        color: '#c2dfff'
+                      message: Status
+                      change: neu => zugewiesen
+                    - created_at: '2018-01-07T18:47:35-05:00'
+                      user:
+                        id: 2
+                        name: GermanReporter
+                        email: german-reporter@example.com
+                      field:
+                        name: handler
+                        label: Bearbeitung durch
+                      type:
+                        id: 0
+                        name: field-updated
+                      old_value:
+                        id: 0
+                      new_value:
+                        id: 1
+                        name: vboctor
+                      message: Bearbeitung durch
+                      change: ' => vboctor'
+                    - created_at: '2018-01-07T18:47:35-05:00'
+                      user:
+                        id: 2
+                        name: GermanReporter
+                        email: german-reporter@example.com
+                      type:
+                        id: 25
+                        name: tag-added
+                      tag:
+                        id: '1'
+                        name: mantishub
+                      message: 'Tag zugeordnet: mantishub'
+        '403':
+          description: User does not have access right to report issues
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 19:31:48 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            Content-Length:
+              schema:
+                type: integer
+                example: '101'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: User does not have access right to report issues
+                code: 13
+                localized: Access Denied.
+        '404':
+          description: Project '5' not found
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 19:33:00 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            Content-Length:
+              schema:
+                type: integer
+                example: '85'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: Project '5' not found
+                code: 700
+                localized: Project "5" not found.
+  /api/rest/issues/{issue_id}/monitors:
+    post:
+      tags:
+        - Issues
+      summary: Monitor an issue (for specified users)
+      description: >-
+        Have one or more users monitor the specified issue.  The users can be
+        identified via:
+
+
+        - id - their user id.
+
+        - name - their username
+
+        - email - their email address
+
+        - name_or_realname - a string that corresponds to their username or real
+        name.
+
+
+        If user id is not specified, the logged in user id is added to the issue
+        as the monitoring user.
+
+
+        If user id is not the same as logged in user id, a high access level is
+        required which enables adding other users to the monitor list.
+
+
+        Available since MantisBT 2.11.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n\t\"users\": [\n\t\t{\n\t\t\t\"name\":
+                \"vboctor-admin\"\n\t\t},\n\t\t{\n\t\t\t\"name_or_realname\":
+                \"Victor Boctor\"\n\t\t}\n\t]\n}"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: issue_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The issue id
+          example: '{{issueId}}'
+      responses:
+        '404':
+          description: 'Issue #1234 not found'
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 19:36:59 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            Content-Length:
+              schema:
+                type: integer
+                example: '83'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: 'Issue #1234 not found'
+                code: 1100
+                localized: Issue 1234 not found.
+  /api/rest/issues/{issue_id}/tags:
+    post:
+      tags:
+        - Issues
+      summary: Detach a tag from an issue
+      description: |-
+        Detach a tag from an issue.
+
+        Available since MantisBT 2.11.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"tag_id\": 1\n}"'
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: issue_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The issue id
+          example: '{{issueId}}'
+      responses:
+        '404':
+          description: 'Issue #1234 not found'
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 19:37:27 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            Content-Length:
+              schema:
+                type: integer
+                example: '83'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: 'Issue #1234 not found'
+                code: 1100
+                localized: Issue 1234 not found.
+  /api/rest/issues/{issue_id}/relationships/:
+    post:
+      tags:
+        - Issues
+      summary: Add an issue relationship
+      description: |-
+        Delete an issue relationship.
+
+        Available since MantisBT 2.6.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n\t\"issue\": {\n\t\t\"id\": 1235\n\t},\n\t\"type\":
+                {\n\t\t\"name\": \"related-to\"\n\t}\n}"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: issue_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The issue id
+          example: '{{issueId}}'
+      responses:
+        '404':
+          description: 'Issue #1234 not found'
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 19:37:40 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            Content-Length:
+              schema:
+                type: integer
+                example: '83'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: 'Issue #1234 not found'
+                code: 1100
+                localized: Issue 1234 not found.
+  /api/rest/issues/{issue_id}/relationships/{relationship_id}:
+    delete:
+      tags:
+        - Issues
+      summary: Delete an issue relationship
+      description: |-
+        Delete an issue relationship.
+
+        Available since MantisBT 2.6.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: issue_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The issue id
+          example: '{{issueId}}'
+        - name: relationship_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The relationship id
+      responses:
+        '404':
+          description: 'Issue #1234 not found'
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 20:29:36 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            Content-Length:
+              schema:
+                type: integer
+                example: '83'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: 'Issue #1234 not found'
+                code: 1100
+                localized: Issue 1234 not found.
+  /api/rest/issues/{issue_id}/notes:
+    post:
+      tags:
+        - Issue Notes and Attachments
+      summary: Create an issue note with attachment
+      description: >-
+        Create an issue note with an associated attachment.
+
+
+        Available since MantisBT 2.6.0.  Attachments supported since MantisBT
+        2.11.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"text\": \"test note\",\n  \"view_state\": {\n 
+                \t\"name\": \"public\"\n  },\n  \"time_tracking\": {\n 
+                \t\"duration\": \"00:15\"\n  },\n  \"files\": [\n  \t{\n 
+                \t\t\"name\": \"test.txt\",\n  \t\t\"content\":
+                \"VGhpcyBpcyBhIFRFU1QuDQpUaGlzIGlzIGEgVEVTVC4NClRoaXMgaXMgYSBURVNULg0KVGhpcyBpcyBhIFRFU1QuDQpUaGlzIGlzIGEgVEVTVC4=\"\n 
+                \t}  \t\n  ]\n}"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: issue_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The issue id
+          example: '{{issueId}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/rest/issues/{issue_id}/notes/{issue_note_id}:
+    delete:
+      tags:
+        - Issue Notes and Attachments
+      summary: Delete an issue note
+      description: |-
+        Delete an issue note.
+
+        Available since MantisBT 2.6.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: issue_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The issue id
+          example: '{{issueId}}'
+        - name: issue_note_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The issue note id
+          example: '{{issueNoteId}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/rest/projects/{project_id}/users:
+    get:
+      tags:
+        - Projects > Project Users
+      summary: Get Project Users
+      description: >-
+        Get users that have access to a project along with their effective
+        project access levels. The list can be filtered by minimum access level
+        where users with such access level or higher will be returned.
+
+
+        The caller must have VIEWER access to the project, otherwise, project
+        doesn't exist error will be returned.
+
+
+        Available since MantisBT 2.26.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: project_id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: '{{projectId}}'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 00:16:03 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '140'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: Success
+                  value:
+                    users:
+                      - id: 1
+                        name: administrator
+                        email: root@localhost
+                        access_level:
+                          id: 90
+                          name: administrator
+                          label: administrator
+                example-1:
+                  summary: Success No Access Level
+                  value:
+                    users:
+                      - id: 1
+                        name: administrator
+                        email: root@localhost
+  /api/rest/projects/{project_id}/handlers:
+    get:
+      tags:
+        - Projects > Project Users
+      summary: Get Project Users that can be assigned issues
+      description: >-
+        Get users that can be assigned issues for a project along with their
+        effective project access levels.
+
+
+        The caller must have VIEWER access to the project, otherwise, project
+        doesn't exist error will be returned.
+
+
+        Available since MantisBT 2.26.0.
+      parameters:
+        - name: project_id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: '{{projectId}}'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 00:13:38 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '140'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: Success
+                  value:
+                    users:
+                      - id: 1
+                        name: administrator
+                        email: root@localhost
+                        access_level:
+                          id: 90
+                          name: administrator
+                          label: administrator
+                example-1:
+                  summary: Success No Access Level
+                  value:
+                    users:
+                      - id: 1
+                        name: administrator
+                        email: root@localhost
+  /api/rest/projects/{project_id}/users/:
+    put:
+      tags:
+        - Projects > Project Users
+      summary: Project Add/Update User
+      description: |-
+        Add a user or update their access level to a project.
+
+        Available since MantisBT 2.26.0
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user:
+                  name: reporter123
+                access_level:
+                  name: reporter
+      parameters:
+        - name: project_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '204':
+          description: No Content
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Mon, 01 May 2023 02:54:31 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/8.0.8 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/8.0.8
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Encoding:
+              schema:
+                type: string
+                example: gzip
+            Vary:
+              schema:
+                type: string
+                example: Accept-Encoding
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: null
+  /api/rest/projects/{project_id}/users/{user_id}:
+    delete:
+      tags:
+        - Projects > Project Users
+      summary: Project Delete User
+      description: >-
+        Delete user's access to a project. Note that user may continue to have
+        access to a project based on their global access level if user has an
+        access level higher than `private_project_threshold` config option.  
+          
+        Available since MantisBT 2.26.0
+      parameters:
+        - name: project_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+        - name: user_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '0'
+      responses:
+        '204':
+          description: No Content
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Mon, 01 May 2023 04:38:00 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/8.0.8 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/8.0.8
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Encoding:
+              schema:
+                type: string
+                example: gzip
+            Vary:
+              schema:
+                type: string
+                example: Accept-Encoding
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: null
+  /api/rest/projects/{project_id}/versions/:
+    post:
+      tags:
+        - Projects > Project Versions
+      summary: Create a project version
+      description: >-
+        Add a project version.
+
+
+        Only name field is required. Timestamp accepts date formats that can be
+        parsed by PHP strtotime().
+
+
+        Available since MantisBT 2.15.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"v1.0.0yyyy\",\n  \"description\": \"Major new
+                version\",\n  \"released\": true,\n  \"obsolete\": false,\n 
+                \"timestamp\": \"2020-02-20\"\n}"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: project_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The project id
+          example: '{{projectId}}'
+      responses:
+        '201':
+          description: Version created with id 17
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sat, 22 Apr 2023 17:36:38 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/8.0.8 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/8.0.8
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '148'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                version:
+                  id: 17
+                  name: v1.0.0
+                  description: Major new version
+                  released: true
+                  obsolete: false
+                  timestamp: '2020-02-20T00:00:00-08:00'
+  /api/rest/projects/{project_id}/versions:
+    get:
+      tags:
+        - Projects > Project Versions
+      summary: Get Project Versions
+      description: |-
+        Get project versions
+
+        Available since MantisBT 2.26.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: project_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The project id
+          example: '{{projectId}}'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sat, 22 Apr 2023 23:16:43 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/8.0.8 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/8.0.8
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '227'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                versions:
+                  - id: 7
+                    name: v1.0.0
+                    released: false
+                    obsolete: false
+                    timestamp: '2023-04-22T15:36:16-07:00'
+                  - id: 8
+                    name: v1.1.0
+                    released: false
+                    obsolete: false
+                    timestamp: '2023-04-22T01:09:33-07:00'
+  /api/rest/projects/{project_id}/versions/{version_id}:
+    get:
+      tags:
+        - Projects > Project Versions
+      summary: Get a Project Version
+      description: |-
+        Get a specific project version
+
+        Available since MantisBT 2.26.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: project_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: The project id
+          example: '1'
+        - name: version_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '18'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sat, 22 Apr 2023 23:18:13 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/8.0.8 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/8.0.8
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '109'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                versions:
+                  - id: 8
+                    name: v1
+                    released: false
+                    obsolete: false
+                    timestamp: '2023-04-22T01:09:33-07:00'
+    patch:
+      tags:
+        - Projects > Project Versions
+      summary: Update project version
+      description: |-
+        Update project version.
+
+        Available since MantisBT 2.26.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"obsolete\": false\n}"'
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: project_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: The project id
+          example: '1'
+        - name: version_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '8'
+      responses:
+        '200':
+          description: Version updated
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sat, 22 Apr 2023 23:47:40 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/8.0.8 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/8.0.8
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '128'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=99
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                version:
+                  id: 8
+                  name: v1x
+                  description: ffff
+                  released: false
+                  obsolete: false
+                  timestamp: '1969-12-31T16:32:49-08:00'
+    delete:
+      tags:
+        - Projects > Project Versions
+      summary: Delete a project version
+      description: |-
+        Delete project version
+
+        Available since MantisBT 2.26.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: project_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The project id
+          example: '{{projectId}}'
+        - name: version_id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '204':
+          description: Version deleted
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sat, 22 Apr 2023 08:06:42 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/8.0.8 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/8.0.8
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Encoding:
+              schema:
+                type: string
+                example: gzip
+            Vary:
+              schema:
+                type: string
+                example: Accept-Encoding
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=99
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: null
+  /api/rest/projects/{project_id}/subprojects:
+    post:
+      tags:
+        - Projects > Sub-Projects
+      summary: Add a sub-project
+      description: |-
+        Add a subproject to the specified project id.
+
+        Available since MantisBT 2.20.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"project\": {\n    \"name\": \"SubProject1\"\n  },\n 
+                \"inherit_parent\": true\n}"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: project_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The project id
+          example: '{{projectId}}'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '51651'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sun, 14 Jan 2018 18:01:42 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 14 Jan 2018 01:07:49 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: vboctoradmin
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.11.0-dev
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                projects:
+                  - id: 1
+                    name: mantisbt
+                    status:
+                      id: 10
+                      name: development
+                      label: development
+                    description: Mantis Project
+                    enabled: true
+                    view_state:
+                      id: 10
+                      name: public
+                      label: public
+                    access_level:
+                      id: 90
+                      name: administrator
+                      label: administrator
+                    custom_fields:
+                      - id: 8
+                        name: Email
+                        type: email
+                        default_value: ''
+                        possible_values: ''
+                        valid_regexp: ''
+                        length_min: 0
+                        length_max: 0
+                        access_level_r:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        access_level_rw:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        display_report: true
+                        display_update: true
+                        display_resolved: true
+                        display_closed: true
+                        require_report: false
+                        require_update: false
+                        require_resolved: false
+                        require_closed: false
+                    versions:
+                      - id: 258
+                        name: 2.0.x
+                        description: ''
+                        released: false
+                        obsolete: false
+                        timestamp: '2016-10-02T18:45:04-04:00'
+                    subProjects:
+                      - id: 31
+                        name: SubProject1
+  /api/rest/projects/{project_id}/subprojects/{subproject_id}:
+    patch:
+      tags:
+        - Projects > Sub-Projects
+      summary: Update a subproject
+      description: |-
+        Update the subproject relationship properties.
+
+        Available since MantisBT 2.20.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n   \"project\": {\n       \"name\": \"Subproject1\"\n  
+                },\n   \"inherit_parent\": true\n}"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: project_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: The project id
+          example: '1'
+        - name: subproject_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: The sub-project id
+          example: '2'
+      responses:
+        '404':
+          description: Project '2' not found
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 20:32:38 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            Content-Length:
+              schema:
+                type: integer
+                example: '85'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: Project '2' not found
+                code: 700
+                localized: Project "2" not found.
+  /api/rest/projects/{project_id}:
+    delete:
+      tags:
+        - Projects
+      summary: Delete a project
+      description: |-
+        Delete a project given its id.
+
+        Available since MantisBT 2.17.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: project_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The project id
+          example: '{{projectId}}'
+      responses:
+        '200':
+          description: Project with id 2 deleted.
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 20:36:00 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '0'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: text/html; charset=UTF-8
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: null
+    get:
+      tags:
+        - Projects
+      summary: Get a project
+      description: |-
+        Get a project given its id.
+
+        Available since MantisBT 2.14.0.
+      parameters:
+        - name: project_id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: '{{projectId}}'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '51651'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sun, 14 Jan 2018 18:01:42 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 14 Jan 2018 01:07:49 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: vboctoradmin
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.11.0-dev
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                projects:
+                  - id: 1
+                    name: mantisbt
+                    status:
+                      id: 10
+                      name: development
+                      label: development
+                    description: Mantis Project
+                    enabled: true
+                    view_state:
+                      id: 10
+                      name: public
+                      label: public
+                    access_level:
+                      id: 90
+                      name: administrator
+                      label: administrator
+                    custom_fields:
+                      - id: 8
+                        name: Email
+                        type: email
+                        default_value: ''
+                        possible_values: ''
+                        valid_regexp: ''
+                        length_min: 0
+                        length_max: 0
+                        access_level_r:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        access_level_rw:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        display_report: true
+                        display_update: true
+                        display_resolved: true
+                        display_closed: true
+                        require_report: false
+                        require_update: false
+                        require_resolved: false
+                        require_closed: false
+                    versions:
+                      - id: 258
+                        name: 2.0.x
+                        description: ''
+                        released: false
+                        obsolete: false
+                        timestamp: '2016-10-02T18:45:04-04:00'
+                    subProjects:
+                      - id: 31
+                        name: SubProject1
+    patch:
+      tags:
+        - Projects
+      summary: Update a project
+      description: |-
+        Update a project.
+
+        Available since MantisBT 2.17.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n   \"id\": 18,\n   \"name\": \"Project 18\",\n  
+                \"enabled\": false,\n   \"inherit_global\": 0\n}"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: project_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The project id
+          example: '{{projectId}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/rest/projects/:
+    get:
+      tags:
+        - Projects
+      summary: Get all projects
+      description: |-
+        Get all projects and sub-projects accessible to user.
+
+        Available since MantisBT 2.5.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '51651'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sun, 14 Jan 2018 18:01:42 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 14 Jan 2018 01:07:49 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: vboctoradmin
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.11.0-dev
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                projects:
+                  - id: 1
+                    name: mantisbt
+                    status:
+                      id: 10
+                      name: development
+                      label: development
+                    description: >-
+                      Mantis.  Report problems with the actual bug tracker here.
+                      (Do not remove this account)
+                    enabled: true
+                    view_state:
+                      id: 10
+                      name: public
+                      label: public
+                    access_level:
+                      id: 90
+                      name: administrator
+                      label: administrator
+                    custom_fields:
+                      - id: 8
+                        name: Email
+                        type: email
+                        default_value: ''
+                        possible_values: ''
+                        valid_regexp: ''
+                        length_min: 0
+                        length_max: 0
+                        access_level_r:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        access_level_rw:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        display_report: true
+                        display_update: true
+                        display_resolved: true
+                        display_closed: true
+                        require_report: false
+                        require_update: false
+                        require_resolved: false
+                        require_closed: false
+                      - id: 1
+                        name: Version Enum
+                        type: enum
+                        default_value: ''
+                        possible_values: >-
+                          |0.19.0a2|0.19.0a1|0.19.0|0.18.3|0.18.2|0.18.1|0.18.0rc2|0.18.0a5|0.18.0a4|0.18.0a3|0.18.0a2|0.18.0a1
+                        valid_regexp: ''
+                        length_min: 0
+                        length_max: 0
+                        access_level_r:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        access_level_rw:
+                          id: 55
+                          name: developer
+                          label: developer
+                        display_report: true
+                        display_update: true
+                        display_resolved: true
+                        display_closed: true
+                        require_report: false
+                        require_update: false
+                        require_resolved: false
+                        require_closed: false
+                      - id: 5
+                        name: Floaty
+                        type: float
+                        default_value: ''
+                        possible_values: ''
+                        valid_regexp: ''
+                        length_min: 0
+                        length_max: 0
+                        access_level_r:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        access_level_rw:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        display_report: true
+                        display_update: true
+                        display_resolved: true
+                        display_closed: true
+                        require_report: false
+                        require_update: false
+                        require_resolved: false
+                        require_closed: false
+                      - id: 6
+                        name: Listy
+                        type: multilist
+                        default_value: ''
+                        possible_values: a|b|c|d|e|f|g
+                        valid_regexp: ''
+                        length_min: 0
+                        length_max: 0
+                        access_level_r:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        access_level_rw:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        display_report: true
+                        display_update: true
+                        display_resolved: false
+                        display_closed: false
+                        require_report: false
+                        require_update: false
+                        require_resolved: false
+                        require_closed: false
+                      - id: 3
+                        name: Place in Queue
+                        type: float
+                        default_value: ''
+                        possible_values: ''
+                        valid_regexp: ''
+                        length_min: 0
+                        length_max: 0
+                        access_level_r:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        access_level_rw:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        display_report: true
+                        display_update: true
+                        display_resolved: false
+                        display_closed: false
+                        require_report: false
+                        require_update: false
+                        require_resolved: false
+                        require_closed: false
+                      - id: 10
+                        name: SomeCheckbox
+                        type: checkbox
+                        default_value: ''
+                        possible_values: Test|Test2
+                        valid_regexp: ''
+                        length_min: 0
+                        length_max: 0
+                        access_level_r:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        access_level_rw:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        display_report: true
+                        display_update: true
+                        display_resolved: true
+                        display_closed: true
+                        require_report: false
+                        require_update: false
+                        require_resolved: false
+                        require_closed: false
+                      - id: 7
+                        name: SomeDate
+                        type: date
+                        default_value: '{+2 days}'
+                        possible_values: ''
+                        valid_regexp: ''
+                        length_min: 0
+                        length_max: 0
+                        access_level_r:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        access_level_rw:
+                          id: 25
+                          name: reporter
+                          label: reporter
+                        display_report: true
+                        display_update: true
+                        display_resolved: false
+                        display_closed: false
+                        require_report: false
+                        require_update: false
+                        require_resolved: false
+                        require_closed: false
+                      - id: 11
+                        name: SomeRadio
+                        type: '9'
+                        default_value: ''
+                        possible_values: Radio1|Radio2
+                        valid_regexp: ''
+                        length_min: 0
+                        length_max: 0
+                        access_level_r:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        access_level_rw:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        display_report: true
+                        display_update: true
+                        display_resolved: true
+                        display_closed: true
+                        require_report: false
+                        require_update: false
+                        require_resolved: false
+                        require_closed: false
+                      - id: 9
+                        name: SomeTextArea
+                        type: textarea
+                        default_value: ''
+                        possible_values: ''
+                        valid_regexp: ''
+                        length_min: 0
+                        length_max: 0
+                        access_level_r:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        access_level_rw:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        display_report: true
+                        display_update: true
+                        display_resolved: true
+                        display_closed: true
+                        require_report: false
+                        require_update: false
+                        require_resolved: false
+                        require_closed: false
+                      - id: 4
+                        name: The City
+                        type: string
+                        default_value: ''
+                        possible_values: ''
+                        valid_regexp: ''
+                        length_min: 0
+                        length_max: 0
+                        access_level_r:
+                          id: 10
+                          name: viewer
+                          label: viewer
+                        access_level_rw:
+                          id: 25
+                          name: reporter
+                          label: reporter
+                        display_report: true
+                        display_update: true
+                        display_resolved: true
+                        display_closed: true
+                        require_report: true
+                        require_update: true
+                        require_resolved: true
+                        require_closed: true
+                    versions:
+                      - id: 258
+                        name: 2.0.x
+                        description: ''
+                        released: false
+                        obsolete: false
+                        timestamp: '2016-10-02T18:45:04-04:00'
+                      - id: 257
+                        name: 1.3.x
+                        description: ''
+                        released: false
+                        obsolete: false
+                        timestamp: '2016-10-02T18:44:00-04:00'
+                      - id: 256
+                        name: 2.0.0-beta.3
+                        description: ''
+                        released: true
+                        obsolete: false
+                        timestamp: '2016-10-02T11:31:00-04:00'
+                      - id: 255
+                        name: 1.3.2
+                        description: ''
+                        released: true
+                        obsolete: false
+                        timestamp: '2016-10-02T11:30:00-04:00'
+                      - id: 254
+                        name: 2.0.0-beta.2
+                        description: ''
+                        released: true
+                        obsolete: false
+                        timestamp: '2016-08-27T04:00:00-04:00'
+                      - id: 253
+                        name: 1.3.1
+                        description: ''
+                        released: true
+                        obsolete: false
+                        timestamp: '2016-08-27T03:00:00-04:00'
+                      - id: 240
+                        name: 1.2.20
+                        description: "MantisBT 1.2.20 is the final maintenance and security release for the 1.2.x series. \r\nAll installations that are currently running any 1.2.x version are strongly advised to upgrade. \r\n\r\nThis release resolves 3 security and a couple of PHP 7 compatibility issues.\r\n"
+                        released: true
+                        obsolete: false
+                        timestamp: '2016-08-14T18:00:00-04:00'
+                      - id: 243
+                        name: 2.0.0-beta.1
+                        description: >-
+                          MantisBT 2.0.0 release focuses on improvements to the
+                          UI compared to 1.3.x release. As of this release, the
+                          db schema is the same between 1.3.x and 2.0.0-beta.1,
+                          enabling users to easily try 2.0.0-beta.1 and provide
+                          feedback.
+                        released: true
+                        obsolete: false
+                        timestamp: '2016-07-19T14:15:00-04:00'
+                      - id: 250
+                        name: 1.3.0
+                        description: MantisBT 1.3.0 stable release
+                        released: true
+                        obsolete: false
+                        timestamp: '2016-07-09T19:26:00-04:00'
+                    categories:
+                      - id: 2
+                        name: administration
+                        project:
+                          id: 1
+                          name: mantisbt
+                      - id: 3
+                        name: api soap
+                        project:
+                          id: 1
+                          name: mantisbt
+                      - id: 71
+                        name: attachments
+                        project:
+                          id: 1
+                          name: mantisbt
+                      - id: 70
+                        name: auth openid
+                        project:
+                          id: 1
+                          name: mantisbt
+                      - id: 4
+                        name: authentication
+                        project:
+                          id: 1
+                          name: mantisbt
+                      - id: 132
+                        name: authorization
+                        project:
+                          id: 1
+                          name: mantisbt
+                      - id: 5
+                        name: bugtracker
+                        project:
+                          id: 1
+                          name: mantisbt
+                      - id: 6
+                        name: change log
+                        project:
+                          id: 1
+                          name: mantisbt
+                    subProjects:
+                      - id: 31
+                        name: SubProject1
+                  - id: 20
+                    name: Mylyn Connector
+                    status:
+                      id: 50
+                      name: stable
+                      label: stable
+                    description: Eclipse Mylyn Connector for MantisBT
+                    enabled: true
+                    view_state:
+                      id: 10
+                      name: public
+                      label: public
+                    access_level:
+                      id: 90
+                      name: administrator
+                      label: administrator
+                    custom_fields: []
+                    versions:
+                      - id: 151
+                        name: Backlog
+                        description: Issues accepted but not yet assigned to a release.
+                        released: false
+                        obsolete: false
+                        timestamp: '2037-12-30T19:00:00-05:00'
+                      - id: 237
+                        name: 3.11.0
+                        description: ''
+                        released: false
+                        obsolete: false
+                        timestamp: '2014-08-31T17:00:00-04:00'
+                    categories:
+                      - id: 75
+                        name: Build
+                        project:
+                          id: 20
+                          name: Mylyn Connector
+                      - id: 76
+                        name: Core
+                        project:
+                          id: 20
+                          name: Mylyn Connector
+                      - id: 1
+                        name: General
+                        project:
+                          id: 0
+                          name: null
+                      - id: 73
+                        name: Infrastructure
+                        project:
+                          id: 20
+                          name: Mylyn Connector
+                      - id: 77
+                        name: Tests
+                        project:
+                          id: 20
+                          name: Mylyn Connector
+                      - id: 78
+                        name: User Interface
+                        project:
+                          id: 20
+                          name: Mylyn Connector
+    post:
+      tags:
+        - Projects
+      summary: Create a project
+      description: |-
+        Create a project.
+
+        Available since MantisBT 2.17.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n   \"name\": \"{{projectName}}\",\n   \"status\": {\n     
+                \"name\": \"development\"\n    },\n    \"description\": \"The
+                project description\",\n    \"file_path\": \"/tmp/\",\n   
+                \"view_state\": {\n      \"name\": \"public\"\n    },\n   
+                \"enabled\": true\n}"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '201':
+          description: Project created with id 2
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 20:34:21 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '455'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                project:
+                  id: 2
+                  name: New Project
+                  status:
+                    id: 10
+                    name: development
+                    label: development
+                  description: >-
+                    Mantis.  Report problems with the actual bug tracker here.
+                    (Do not remove this account)
+                  enabled: true
+                  view_state:
+                    id: 10
+                    name: public
+                    label: public
+                  access_level:
+                    id: 90
+                    name: administrator
+                    label: administrator
+                  custom_fields: []
+                  versions: []
+                  categories:
+                    - id: 1
+                      name: General
+                      project:
+                        id: 0
+                        name: null
+        '403':
+          description: Access denied for user reporter.
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 20:33:46 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            Content-Length:
+              schema:
+                type: integer
+                example: '46'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: Access denied for user vboctor.
+  /api/rest/filters:
+    get:
+      tags:
+        - Filters
+      summary: Get all filters
+      description: |-
+        Get all definitions for filters accessible to logged in user.
+
+        Available since MantisBT 2.10.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 20:38:32 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '14'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                filters: []
+  /api/rest/filters/{filter_id}:
+    get:
+      tags:
+        - Filters
+      summary: Get a filter
+      description: |-
+        Gets the definition of a filter given its id.
+
+        Available since MantisBT 2.10.0
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: filter_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The filter id
+          example: '{{filterId}}'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '432'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Mon, 08 Jan 2018 00:35:10 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: vboctor
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.11.0-dev
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                filters:
+                  - id: 123
+                    name: Commented On
+                    owner:
+                      id: 1
+                      name: vboctor
+                    public: true
+                    project:
+                      id: 0
+                      name: All Projects
+                    criteria:
+                      commented:
+                        - id: '[myself]'
+                      hide_status:
+                        id: 80
+                        name: resolved
+                        label: resolved
+                        color: '#d2f5b0'
+                    url: >-
+                      http://localhost/mantisbt/search.php?project_id=1&note_user_id=-1&sticky=on&sort=last_updated&dir=DESC&per_page=50&hide_status=80&match_type=0
+    delete:
+      tags:
+        - Filters
+      summary: Delete a filter
+      description: >-
+        Delete a filter definition given its id.  This is usable for user
+        defined filters and not for standard filters.
+
+
+        Available since MantisBT 2.10.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: filter_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The filter id
+          example: '{{filterId}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/rest/users/me:
+    get:
+      tags:
+        - Impersonation
+      summary: Get My User Info with Impersonation
+      description: >-
+        This is an example of using user impersonation to access any API while
+        impersonating the desired user. The user whose API token is used must
+        have a global access level that is greater than or equal to
+        `impersonate_user_threshold`.
+
+
+        The `X-Mantis-Username` request header is used to specify the target
+        user to impersonate for the API request. Such user must not have an
+        access level that is greater than the user whose token is passed to the
+        API.
+
+
+        Available since MantisBT 2.26.0
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: X-Mantis-Username
+          in: header
+          schema:
+            type: string
+          example: username-to-impersonate
+      responses:
+        '200':
+          description: OK
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Mon, 10 Apr 2023 02:38:57 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '909'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: 1
+                name: administrator
+                real_name: Admin Real
+                email: root@localhost
+                language: english
+                timezone: America/Los_Angeles
+                access_level:
+                  id: 90
+                  name: administrator
+                  label: administrator
+                created_at: '2022-08-20T16:11:58-07:00'
+                projects:
+                  - id: 22
+                    name: Project 22
+                  - id: 44
+                    name: Project 44
+  /api/rest/users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get User By Id (select)
+      description: >-
+        Get user information by id.
+
+
+        - Showing email for other users is dependent on
+        `$g_show_user_email_threshold`
+
+        - Showing real_name for other users is dependent on
+        `$g_show_user_realname_threshold`
+            
+
+        In development, expected to ship in MantisBT 2.26.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: select
+          in: query
+          schema:
+            type: string
+          example: id,name,real_name,email,access_level
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: The user id
+          example: '1'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Mon, 10 Apr 2023 02:51:47 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '153'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: 1
+                name: administrator
+                real_name: Admin Real
+                email: root@localhost
+                access_level:
+                  id: 90
+                  name: administrator
+                  label: administrator
+  /api/rest/users/username/{username}:
+    get:
+      tags:
+        - Users
+      summary: Get User By Username
+      description: |-
+        Get user information by username.
+
+        In development, expected to ship in MantisBT 2.26.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: username
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Mon, 10 Apr 2023 04:12:30 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '93'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                users:
+                  - id: 1
+                    name: administrator
+                    real_name: Admin Real
+                    email: root@localhost
+        '404':
+          description: User not found
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sat, 22 Apr 2023 05:54:10 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/8.0.8 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/8.0.8
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            Content-Length:
+              schema:
+                type: integer
+                example: '93'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: User not found
+                code: 810
+                localized: User with name "fake-user" not found.
+  /api/rest/users/:
+    post:
+      tags:
+        - Users
+      summary: Create a user (minimal)
+      description: |-
+        Creates a user.
+
+        Available since MantisBT 2.11.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"username\": \"{{username}}\",\n  \"password\":
+                \"{{$randomPassword}}\",\n  \"real_name\": \"{{username}}
+                Real\",\n  \"email\": \"{{username}}@example2.com\",\n 
+                \"access_level\":\n  {\n      \"name\": \"developer\"\n  },\n 
+                \"enabled\": true,\n  \"protected\": false\n}"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '201':
+          description: User created with id 41318
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '855'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sat, 13 Jan 2018 22:28:35 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sat, 13 Jan 2018 06:08:09 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: vboctoradmin
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.11.0-dev
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                user:
+                  id: 1000
+                  name: testuser
+                  language: english
+                  timezone: America/Los_Angeles
+                  access_level:
+                    id: 25
+                    name: reporter
+                    label: reporter
+                  projects:
+                    - id: 1
+                      name: mantisbt
+                    - id: 12
+                      name: MantisTouch
+                    - id: 20
+                      name: Mylyn Connector
+                    - id: 25
+                      name: Plugin - agileMantis
+                    - id: 11
+                      name: Plugin - CsvImport
+                    - id: 21
+                      name: Plugin - CustomerManagement
+                    - id: 10
+                      name: Plugin - EmailReporting
+                    - id: 15
+                      name: Plugin - FilterPageEdit
+                    - id: 14
+                      name: Plugin - InlineColumnConfiguration
+                    - id: 16
+                      name: Plugin - LinkedCustomFields
+                    - id: 9
+                      name: Plugin - MachineAD
+                    - id: 22
+                      name: Plugin - MantisTouchRedirect
+                    - id: 6
+                      name: Plugin - RecurrCall
+                    - id: 13
+                      name: Plugin - RelatedIssuesExport
+                    - id: 7
+                      name: Plugin - Reminder
+                    - id: 8
+                      name: Plugin - Tasks
+                    - id: 18
+                      name: Plugin - Time Tracking
+  /api/rest/users/{user_id}:
+    patch:
+      tags:
+        - Users
+      summary: Update User
+      description: >-
+        Update a set of user attributes. Note that attributes that are not
+        specified will be left unchanged. Hence, it is recommended to only
+        include fields that need to be changed.
+
+
+        To change user's other than user calling the API, the user must have
+        access level greater than or equal to `manage_user_threshold`.
+
+
+        Any user can change their own user attributes excluding `enabled`,
+        `protected`, and `access_level`.
+
+
+        Available since MantisBT 2.26.0.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n    \"name\": \"vboctor\",\n    \"real_name\": \"Victor
+                Boctor\",\n    \"email\": \"vboctor@example.com\",\n   
+                \"access_level\":\n    {\n        \"name\": \"developer\"\n   
+                },\n    \"enabled\": true,\n    \"protected\": false\n}"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: user_id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Users
+      summary: Delete a user
+      description: |-
+        Deletes the specified user.
+
+        Available since MantisBT 2.11.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: user_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The user id to delete
+          example: '{{userId}}'
+      responses:
+        '204':
+          description: No Content
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Encoding:
+              schema:
+                type: string
+                example: gzip
+            Content-Type:
+              schema:
+                type: string
+                example: ''
+            Date:
+              schema:
+                type: string
+                example: Sun, 14 Jan 2018 00:28:10 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sat, 13 Jan 2018 06:08:09 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            Vary:
+              schema:
+                type: string
+                example: Accept-Encoding
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: vboctoradmin
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.11.0-dev
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: ''
+  /api/rest/users/{user_id}/reset:
+    put:
+      tags:
+        - Users
+      summary: Reset user password
+      description: |-
+        Resets password for the specific user.
+
+        Available since MantisBT 2.24.0.
+      requestBody:
+        content: {}
+      parameters:
+        - name: user_id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: The user id to reset password for
+          example: '{{userId}}'
+      responses:
+        '204':
+          description: No Content
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 21 Aug 2022 20:38:08 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 22 Feb 2021 03:58:37 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Encoding:
+              schema:
+                type: string
+                example: gzip
+            Vary:
+              schema:
+                type: string
+                example: Accept-Encoding
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: null
+  /api/rest/users/me/token:
+    post:
+      tags:
+        - User Tokens
+      summary: Create token for me
+      description: |-
+        Create an API token for the logged in user.
+
+        Available since MantisBT 2.26.0.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: ''
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+      responses:
+        '201':
+          description: User token created
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 08:13:36 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '171'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: 85
+                name: administrator created on 2023-04-09 01:13 PDT
+                token: NeOfctppwNgPGfvfaIeiXT4h4HpIomUq
+                user:
+                  id: 1
+                  name: administrator
+                  email: root@localhost
+  /api/rest/users/me/token/{id}:
+    delete:
+      tags:
+        - User Tokens
+      summary: Delete token for me
+      description: |-
+        Deletes an API token for the logged in user.
+
+        Available since MantisBT 2.26.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: '{{apiTokenId}}'
+      responses:
+        '204':
+          description: User token deleted
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 08:14:37 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Encoding:
+              schema:
+                type: string
+                example: gzip
+            Vary:
+              schema:
+                type: string
+                example: Accept-Encoding
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: null
+  /api/rest/users/{user_id}/token:
+    post:
+      tags:
+        - User Tokens
+      summary: Create token for user
+      description: >-
+        Creates an API token for the specified user. The logged in user must
+        have access level to impersonate another users.
+
+
+        Available since MantisBT 2.26.0.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: ''
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: user_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '3'
+      responses:
+        '201':
+          description: User token created
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 08:15:15 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '140'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: 86
+                name: administrator created on 2023-04-09 01:15 PDT
+                token: _7H2k4aAihjgetL48y--0iO5aYz1tD0O
+                user:
+                  id: 3
+                  name: manager
+  /api/rest/users/{user_id}/token/{id}:
+    delete:
+      tags:
+        - User Tokens
+      summary: Delete token for user
+      description: >-
+        Deletes the specified user. The logged in user must have access to
+        impersonate other users.
+
+
+        Available since MantisBT 2.26.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: user_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '3'
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: '{{apiTokenId}}'
+      responses:
+        '204':
+          description: User token deleted
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 08:15:53 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Encoding:
+              schema:
+                type: string
+                example: gzip
+            Vary:
+              schema:
+                type: string
+                example: Accept-Encoding
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: null
+  /api/rest/config:
+    get:
+      tags:
+        - Config
+      summary: Get Multiple Configuration Options
+      description: >-
+        Get specified config options.  If an option doesn't exist or is marked
+        as private, it will be silently skipped.
+
+
+        Some config options get extra handling to provide more useful response. 
+        For example:
+
+
+        - Enumerations - The enumeration is parsed into an array of objects,
+        each object including id, name and localized label.
+
+
+        For list of possible config options to retrieve see the following file:
+
+        https://github.com/mantisbt/mantisbt/blob/master/config_defaults_inc.php
+
+
+        When requesting an option, don't supply the `$g_` prefix for the string
+        name.  Only options that are listed as public can be retrieved via this
+        API.  Search the `config_defaults_inc.php` file for
+        `$g_public_config_names` to see the list of public options.
+
+
+        Available since MantisBT 2.3.0.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: option[]
+          in: query
+          schema:
+            type: string
+          example: crypto_master_salt
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '618'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sun, 07 Jan 2018 22:04:50 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: EvilMan
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.11.0-dev
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                configs:
+                  - option: csv_separator
+                    value: ','
+                  - option: status_colors
+                    value:
+                      new: '#fcbdbd'
+                      feedback: '#e3b7eb'
+                      acknowledged: '#ffcd85'
+                      confirmed: '#fff494'
+                      assigned: '#c2dfff'
+                      resolved: '#d2f5b0'
+                      closed: '#c9ccc4'
+                  - option: status_enum_string
+                    value:
+                      - id: 10
+                        name: new
+                        label: neu
+                      - id: 20
+                        name: feedback
+                        label: Rückmeldung
+                      - id: 30
+                        name: acknowledged
+                        label: anerkannt
+                      - id: 40
+                        name: confirmed
+                        label: bestätigt
+                      - id: 50
+                        name: assigned
+                        label: zugewiesen
+                      - id: 80
+                        name: resolved
+                        label: erledigt
+                      - id: 90
+                        name: closed
+                        label: geschlossen
+    patch:
+      tags:
+        - Config
+      summary: Set Configs
+      description: >-
+        Sets the specific config options for the specified project (if
+        supplied), otherwise, it will apply to all projects.
+
+
+        For list of possible config options to retrieve see the following
+        file:  
+
+        [https://github.com/mantisbt/mantisbt/blob/master/config_defaults_inc.php](https://github.com/mantisbt/mantisbt/blob/master/config_defaults_inc.php)
+
+
+        When setting an option, don't supply the `$g_` prefix for the string
+        name. Only options that are listed as public and not globaly only can be
+        set via this API. Search the `config_defaults_inc.php` file for:
+
+
+        - `$g_public_config_names` to see the list of public options.
+
+        - `$g_global_settings` to see the list of configs that can only be set
+        via `config_inc.php` and can't be overriden in the database.
+            
+
+        Available since MantisBT 2.26.0.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                project:
+                  name: New Project 2
+                configs:
+                  - option: default_bug_description
+                    value: ''
+                  - option: priority_enum_string
+                    value: 5:unknown,20:low,30:normal,40:high
+                  - option: severity_enum_string
+                    value:
+                      - id: '50'
+                        name: Minor_fff
+                      - id: 60
+                        name: major
+                      - id: 80
+                        name: block
+      responses:
+        '200':
+          description: OK
+          headers:
+            Date:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 08:26:04 GMT
+            Server:
+              schema:
+                type: string
+                example: >-
+                  Apache/2.4.46 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+                  PHP/7.4.21 OpenSSL/1.0.2u mod_wsgi/3.5 Python/2.7.18
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.4.21
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 09 Apr 2023 04:10:00 GMT
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: administrator
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.26.0-dev
+            Content-Length:
+              schema:
+                type: integer
+                example: '0'
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Type:
+              schema:
+                type: string
+                example: text/html; charset=UTF-8
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: null
+  /api/rest/lang:
+    get:
+      tags:
+        - Lang
+      summary: Get multiple localized strings
+      description: >-
+        Get the specified localized strings.  If a string doesn't exist, it will
+        be silently skipped.
+
+
+        For list of possible strings to retrieve see the following file:
+
+        https://github.com/mantisbt/mantisbt/blob/master/lang/strings_english.txt
+
+
+        When requesting a string, don't supply the `$s_` prefix for the string
+        name.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: string[]
+          in: query
+          schema:
+            type: string
+          example: all_projects
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '322'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Mon, 08 Jan 2018 00:13:39 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: GermanReporter
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.11.0-dev
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                strings:
+                  - name: all_projects
+                    localized: Alle Projekte
+                  - name: status
+                    localized: Status
+                  - name: move_bugs
+                    localized: Eintrag verschieben
+                  - name: status_enum_string
+                    localized: >-
+                      10:neu,20:Rückmeldung,30:anerkannt,40:bestätigt,50:zugewiesen,80:erledigt,90:geschlossen
+                language: german
+  /api/rest/pages/issues/view/{issue_id}:
+    get:
+      tags:
+        - Pages
+      summary: Get Issue View Page
+      description: >-
+        IN DEVELOPMENT - NOT RELEASED YET!
+
+
+        Get information necessary to render an issue view page for the specified
+        issue.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: '{{token}}'
+        - name: issue_id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: '{{issueId}}'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '1509'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sun, 07 Jan 2018 22:43:16 GMT
+            ETag:
+              schema:
+                type: string
+                example: >-
+                  1625146a518db1112fdce101781fae3f6b5b936ec3b02ab77a78705489cfee67
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Mantis-LoginMethod:
+              schema:
+                type: string
+                example: api-token
+            X-Mantis-Username:
+              schema:
+                type: string
+                example: vboctoradmin
+            X-Mantis-Version:
+              schema:
+                type: string
+                example: 2.11.0-dev
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                issues:
+                  - id: 1234
+                    summary: Sample issue title
+                    description: Sample issue description
+                    project:
+                      id: 1
+                      name: mantisbt
+                    category:
+                      id: 135
+                      name: General
+                    reporter:
+                      id: 1
+                      name: vboctor
+                      real_name: Victor Boctor
+                      email: vboctor@example.com
+                    status:
+                      id: 10
+                      name: new
+                      label: new
+                      color: '#fcbdbd'
+                    resolution:
+                      id: 10
+                      name: open
+                      label: open
+                    view_state:
+                      id: 10
+                      name: public
+                      label: public
+                    priority:
+                      id: 30
+                      name: normal
+                      label: normal
+                    severity:
+                      id: 50
+                      name: minor
+                      label: minor
+                    reproducibility:
+                      id: 70
+                      name: have not tried
+                      label: have not tried
+                    sticky: false
+                    created_at: '2017-04-23T13:12:28-04:00'
+                    updated_at: '2017-04-23T13:12:28-04:00'
+                    custom_fields:
+                      - field:
+                          id: 4
+                          name: The City
+                        value: Seattle
+                    history:
+                      - created_at: '2017-04-23T13:12:28-04:00'
+                        user:
+                          id: 36771
+                          name: vboctor
+                          real_name: Victor Boctor
+                          email: vboctor@example.com
+                        type:
+                          id: 1
+                          name: issue-new
+                        message: New Issue
+        '404':
+          description: 'Issue #2192022 not found'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: private, max-age=10800
+            Connection:
+              schema:
+                type: string
+                example: Keep-Alive
+            Content-Length:
+              schema:
+                type: integer
+                example: '89'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json;charset=utf-8
+            Date:
+              schema:
+                type: string
+                example: Sun, 07 Jan 2018 22:53:57 GMT
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5, max=100
+            Last-Modified:
+              schema:
+                type: string
+                example: Sun, 31 Dec 2017 19:58:54 GMT
+            Server:
+              schema:
+                type: string
+                example: Apache
+            X-Powered-By:
+              schema:
+                type: string
+                example: PHP/7.1.8
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: 'Issue #1234 not found'
+                code: 1100
+                localized: Issue 1234 not found.
