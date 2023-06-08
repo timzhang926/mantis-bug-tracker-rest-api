@@ -3,7 +3,7 @@ window.onload = function() {
 
   // the following lines will be replaced by docker/configurator, when it runs in a docker-container
   window.ui = SwaggerUIBundle({
-    url: "mantis-bug-tracker-rest-api.yaml",
+    url: "https://github.com/zhangxd926/mantis-bug-tracker-rest-api/blob/main/mantis-bug-tracker-rest-api.yaml",
     dom_id: '#swagger-ui',
     deepLinking: true,
     presets: [
